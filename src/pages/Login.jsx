@@ -7,7 +7,7 @@ import { toast } from 'react-toastify'
 import doctorImage from '../assets/doctor_image.jpg'
 
 const Login = () => {
-  const [state, setState] = useState('Admin')
+  const [state, setState] = useState('Doctor')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
