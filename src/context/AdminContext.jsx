@@ -1,8 +1,8 @@
 
 import axios from "axios";
 import { createContext, useState } from "react";
-import { toast } from "react-toastify";
-import uploadToCloudinary from "../utils/uploadToCloudinary";
+import { toast } from "../utils/notification";
+import createDoctorFormData from "../utils/createDoctorFormData";
 
 export const AdminContext = createContext();
 
@@ -95,32 +95,12 @@ const AdminContextProvider = (props) => {
         }
     };
 
-    // ADD DOCTOR WITH CLOUDINARY IMAGE UPLOAD
+    // ADD DOCTOR
     const addDoctor = async (doctorData, imageFile) => {
         try {
-            let imageUrl = doctorData.docImage || "";
-
-            // Upload image to Cloudinary first
-            if (imageFile) {
-                toast.info("Uploading doctor image...");
-
-                imageUrl = await uploadToCloudinary(imageFile);
-
-                console.log("Cloudinary Image URL:", imageUrl);
-            }
-
-            // Prepare data for Spring Boot
-            const doctorPayload = {
-                ...doctorData,
-                docImage: imageUrl
-            };
-
-            console.log("Doctor data being sent:", doctorPayload);
-
-            // Send doctor details to backend
             const { data } = await axios.post(
                 `${backendUrl}/admin/doctor`,
-                doctorPayload,
+                createDoctorFormData(doctorData, imageFile),
                 getAuthConfig()
             );
 

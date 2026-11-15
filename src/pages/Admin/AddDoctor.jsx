@@ -1,10 +1,9 @@
 import { useContext, useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
-import axios from 'axios';
+import { toast } from '../../utils/notification';
 import { AdminContext } from '../../context/AdminContext';
 
 const AddDoctor = () => {
-    const { backendUrl, aToken, getAllDoctors } = useContext(AdminContext);
+    const { aToken, addDoctor } = useContext(AdminContext);
 
     const [docImg, setDocImg] = useState(null);
     const [imagePreview, setImagePreview] = useState('');
@@ -77,27 +76,6 @@ const AddDoctor = () => {
         setImagePreview(URL.createObjectURL(file));
     };
 
-    // Upload image to Cloudinary
-    const uploadToCloudinary = async (file) => {
-        const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-        const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
-
-        if (!cloudName || !uploadPreset) {
-            throw new Error('Cloudinary configuration is missing. Check your .env file.');
-        }
-
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('upload_preset', uploadPreset);
-
-        const response = await axios.post(
-            `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-            formData
-        );
-
-        return response.data.secure_url;
-    };
-
     // Reset form
     const resetForm = () => {
         setDocImg(null);
@@ -139,19 +117,11 @@ const AddDoctor = () => {
 
         try {
             setLoading(true);
-            toast.info('Uploading doctor image...');
-
-            const imageUrl = await uploadToCloudinary(docImg);
-
-            if (!imageUrl) {
-                throw new Error('Cloudinary image upload failed.');
-            }
 
             const doctorData = {
                 user: {
                     name: name.trim(),
                     email: email.trim(),
-                    image: imageUrl,
                     phone: phone.trim(),
                     gender,
                     dateOfBirth: `${dateOfBirth}T00:00:00`,
@@ -174,24 +144,10 @@ const AddDoctor = () => {
                 fees: Number(fees)
             };
 
-            await axios.post(
-                `${backendUrl}/admin/doctor`,
-                doctorData,
-                {
-                    headers: {
-                        Authorization: `Bearer ${aToken}`,
-                        'Content-Type': 'application/json',
-                        Accept: 'application/json'
-                    }
-                }
-            );
+            const result = await addDoctor(doctorData, docImg);
+            if (!result) return;
 
-            toast.success('Doctor added successfully!');
             resetForm();
-
-            if (getAllDoctors) {
-                await getAllDoctors();
-            }
 
         } catch (error) {
             console.error('Add Doctor Error:', error);

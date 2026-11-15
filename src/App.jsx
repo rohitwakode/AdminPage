@@ -2,8 +2,8 @@ import { useContext } from 'react'
 import { DoctorContext } from './context/DoctorContext';
 import { AdminContext } from './context/AdminContext';
 import { Navigate, Route, Routes } from 'react-router-dom'
-import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Notification from './components/Notification'
 import Navbar from './components/Navbar'
 import Sidebar from './components/Sidebar'
 import Dashboard from './pages/Admin/Dashboard';
@@ -24,7 +24,7 @@ const App = () => {
   if (!dToken && !aToken) {
     return (
       <>
-        <ToastContainer />
+        <Notification />
         <Login />
       </>
     )
@@ -36,7 +36,7 @@ const App = () => {
 
   return (
     <div className='app-shell'>
-      <ToastContainer />
+      <Notification />
       <Navbar />
       <div className='app-layout'>
         <Sidebar />

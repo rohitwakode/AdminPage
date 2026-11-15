@@ -1,7 +1,7 @@
 
 import { createContext, useState, useCallback } from "react";
 import axios from "axios";
-import { toast } from "react-toastify";
+import { toast } from "../utils/notification";
 
 export const DoctorContext = createContext();
 

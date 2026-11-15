@@ -2,9 +2,12 @@
 import { useContext, useEffect, useState } from 'react'
 import { DoctorContext } from '../../context/DoctorContext'
 import { AppContext } from '../../context/AppContext'
-import { toast } from 'react-toastify'
 import axios from 'axios'
-import uploadToCloudinary from '../../utils/uploadToCloudinary'
+import createDoctorFormData from '../../utils/createDoctorFormData'
+import {
+  showErrorNotification,
+  showSuccessNotification
+} from '../../utils/notification'
 
 const DoctorProfile = () => {
 
@@ -35,13 +38,13 @@ const DoctorProfile = () => {
 
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
     if (!allowedTypes.includes(file.type)) {
-      toast.error('Only JPG, PNG and WEBP images are allowed.')
+      showErrorNotification('Only JPG, PNG and WEBP images are allowed.')
       event.target.value = ''
       return
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image must be smaller than 5MB.')
+      showErrorNotification('Image must be smaller than 5MB.')
       event.target.value = ''
       return
     }
@@ -57,28 +60,22 @@ const DoctorProfile = () => {
     try {
 
       if (!profileData) {
-        toast.error('Profile data not available')
+        showErrorNotification('Profile data not available')
         return
       }
 
       if (!dToken) {
-        toast.error('Please login as doctor')
+        showErrorNotification('Please login as doctor')
         return
       }
 
       setLoading(true)
 
-      const imageUrl = profileImageFile
-        ? await uploadToCloudinary(profileImageFile)
-        : profileData.docImage
-
-      // Prepare complete update JSON
       const updateData = {
 
         user: {
           name: profileData.docName,
           email: profileData.email,
-          image: imageUrl,
           phone: profileData.phone,
           gender: profileData.gender,
           dateOfBirth: profileData.dateOfBirth,
@@ -107,27 +104,21 @@ const DoctorProfile = () => {
 
       }
 
-      console.log('Doctor Update JSON:', updateData)
-
       const { data } = await axios.put(
         `${backendUrl}/doctor`,
-        updateData,
+        createDoctorFormData(updateData, profileImageFile),
         {
           headers: {
             Authorization: `Bearer ${dToken}`,
-            'Content-Type': 'application/json'
+            Accept: 'application/json'
           }
         }
       )
 
       console.log('Doctor Updated:', data)
 
-      toast.success('Doctor profile updated successfully')
+      showSuccessNotification('Doctor profile updated successfully')
 
-      setProfileData(prev => ({
-        ...prev,
-        docImage: imageUrl
-      }))
       setIsEdit(false)
       setProfileImageFile(null)
       setProfileImagePreview('')
@@ -144,7 +135,7 @@ const DoctorProfile = () => {
         error.response?.data
       )
 
-      toast.error(
+      showErrorNotification(
         error.response?.data?.message ||
         error.response?.data ||
         error.message

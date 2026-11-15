@@ -3,7 +3,7 @@ import { useContext, useState } from 'react'
 import axios from 'axios'
 import { DoctorContext } from '../context/DoctorContext'
 import { AdminContext } from '../context/AdminContext'
-import { toast } from 'react-toastify'
+import { toast } from '../utils/notification'
 import doctorImage from '../assets/doctor_image.jpg'
 
 const Login = () => {
@@ -15,11 +15,17 @@ const Login = () => {
   const [resetToken, setResetToken] = useState('')
   const [view, setView] = useState('login')
   const [loading, setLoading] = useState(false)
+  const [brandClicks, setBrandClicks] = useState(0)
+  const showAdminLogin = brandClicks >= 6
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL
 
   const { setDToken } = useContext(DoctorContext)
   const { setAToken } = useContext(AdminContext)
+
+  const handleBrandClick = () => {
+    setBrandClicks((clicks) => Math.min(clicks + 1, 6))
+  }
 
   const getErrorMessage = (error, fallback) => {
     const responseMessage = error.response?.data
@@ -156,14 +162,22 @@ const Login = () => {
   }
 
   return (
-    <div className="login-screen">
+    <div className={`login-screen${view === 'login' ? ' login-screen--signin' : ''}`}>
       <div className="login-card">
         <div className="login-visual">
           <img
             src={doctorImage}
             alt=""
           />
-          <div className="login-visual-brand"><span className="brand-red">ASCL</span><span className="brand-white">EPIUS</span> <small>CLINIC PORTAL</small></div>
+          <button
+            type="button"
+            className="login-visual-brand"
+            aria-label="Asclepius Clinic Portal"
+            onClick={handleBrandClick}
+          >
+            <span className="brand-red">ASCL</span><span className="brand-white">EPIUS</span>
+            <small>CLINIC PORTAL</small>
+          </button>
           <div className="login-visual-copy">
             <p className="login-kicker">A BETTER WAY TO CARE</p>
             <h2>Healthcare,<br />in focus.</h2>
@@ -208,8 +222,12 @@ const Login = () => {
           </div>
           {view === 'login' && (
             <>
-              <div className="login-role-switch" role="group" aria-label="Choose account type">
-                {['Admin', 'Doctor'].map((role) => (
+              <div
+                className={`login-role-switch${showAdminLogin ? '' : ' single-option'}`}
+                role="group"
+                aria-label="Choose account type"
+              >
+                {(showAdminLogin ? ['Admin', 'Doctor'] : ['Doctor']).map((role) => (
                   <button
                     key={role}
                     type="button"
