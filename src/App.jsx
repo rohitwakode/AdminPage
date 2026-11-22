@@ -14,6 +14,8 @@ import Login from './pages/Login';
 import DoctorAppointments from './pages/Doctor/DoctorAppointments';
 import DoctorDashboard from './pages/Doctor/DoctorDashboard';
 import DoctorProfile from './pages/Doctor/DoctorProfile';
+import CompleteAppointment from './pages/Doctor/CompleteAppointment';
+import ViewPrescription from './pages/Doctor/ViewPrescription';
 import ViewDoctor from './pages/Admin/ViewDoctor';
 import PatientsList from './pages/Admin/PatientsList';
 
@@ -74,6 +76,14 @@ const App = () => {
             <Route
               path='/doctor-appointments'
               element={isDoctor ? <DoctorAppointments /> : <Navigate to={homePath} replace />}
+            />
+            <Route
+              path='/doctor-appointments/:id/prescription'
+              element={isDoctor ? <CompleteAppointment /> : <Navigate to={homePath} replace />}
+            />
+            <Route
+              path='/doctor-prescription/:id'
+              element={isDoctor ? <ViewPrescription /> : <Navigate to={homePath} replace />}
             />
             <Route
               path='/doctor-profile'

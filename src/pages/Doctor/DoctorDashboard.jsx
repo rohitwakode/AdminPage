@@ -1,20 +1,18 @@
 
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { DoctorContext } from '../../context/DoctorContext'
 import { AppContext } from '../../context/AppContext'
-import CompleteAppointmentModal from '../../components/CompleteAppointmentModal'
-import AppointmentDetailsModal from '../../components/AppointmentDetailsModal'
 
 const DoctorDashboard = () => {
-    const [appointmentToComplete, setAppointmentToComplete] = useState(null)
-    const [appointmentToView, setAppointmentToView] = useState(null)
+    const navigate = useNavigate()
+    const location = useLocation()
 
     const {
         dToken,
         dashData,
         getDashData,
-        cancelAppointment,
-        completeAppointment
+        cancelAppointment
     } = useContext(DoctorContext)
 
     const { slotDateFormat, currency } = useContext(AppContext)
@@ -154,7 +152,15 @@ const DoctorDashboard = () => {
 
                                         {item.isCompleted && (
                                             <button
-                                                onClick={() => setAppointmentToView(item)}
+                                                onClick={() => navigate(
+                                                    `/doctor-prescription/${appointmentId}`,
+                                                    {
+                                                        state: {
+                                                            appointment: item,
+                                                            returnTo: location.pathname
+                                                        }
+                                                    }
+                                                )}
                                                 className="rounded-full bg-indigo-600/20 px-3 py-2 text-xs text-indigo-300 hover:bg-indigo-600/40"
                                                 title="View prescription"
                                             >
@@ -186,7 +192,15 @@ const DoctorDashboard = () => {
                                                 </button>
 
                                                 <button
-                                                    onClick={() => setAppointmentToComplete(item)}
+                                                    onClick={() => navigate(
+                                                        `/doctor-appointments/${appointmentId}/prescription`,
+                                                        {
+                                                            state: {
+                                                                appointment: item,
+                                                                returnTo: location.pathname
+                                                            }
+                                                        }
+                                                    )}
                                                     className="p-2 rounded-full bg-green-600/20 hover:bg-green-600/40"
                                                     title="Complete appointment"
                                                     disabled={!appointmentId}
@@ -218,16 +232,6 @@ const DoctorDashboard = () => {
 
             </div>
 
-            <CompleteAppointmentModal
-                key={appointmentToComplete?.id ?? appointmentToComplete?._id ?? 'closed'}
-                appointment={appointmentToComplete}
-                onClose={() => setAppointmentToComplete(null)}
-                onSubmit={completeAppointment}
-            />
-            <AppointmentDetailsModal
-                appointment={appointmentToView}
-                onClose={() => setAppointmentToView(null)}
-            />
         </div>
     )
 }

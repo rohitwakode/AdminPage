@@ -1,20 +1,18 @@
 
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { DoctorContext } from '../../context/DoctorContext'
 import { AppContext } from '../../context/AppContext'
-import CompleteAppointmentModal from '../../components/CompleteAppointmentModal'
-import AppointmentDetailsModal from '../../components/AppointmentDetailsModal'
 
 const DoctorAppointments = () => {
-  const [appointmentToComplete, setAppointmentToComplete] = useState(null)
-  const [appointmentToView, setAppointmentToView] = useState(null)
+  const navigate = useNavigate()
+  const location = useLocation()
 
   const {
     dToken,
     appointments,
     getAppointments,
-    cancelAppointment,
-    completeAppointment
+    cancelAppointment
   } = useContext(DoctorContext)
 
   const {
@@ -237,7 +235,9 @@ const DoctorAppointments = () => {
                     {isCompleted && (
                       <button
                         type="button"
-                        onClick={() => setAppointmentToView(item)}
+                        onClick={() => navigate(`/doctor-prescription/${appointmentId}`, {
+                          state: { appointment: item, returnTo: location.pathname }
+                        })}
                         className="px-3 py-1.5 rounded text-xs font-semibold bg-indigo-600/20 text-indigo-300 hover:bg-indigo-600/40"
                       >
                         Prescription
@@ -275,7 +275,9 @@ const DoctorAppointments = () => {
                         <button
                           onClick={() => {
                             if (appointmentId) {
-                              setAppointmentToComplete(item)
+                              navigate(`/doctor-appointments/${appointmentId}/prescription`, {
+                                state: { appointment: item, returnTo: location.pathname }
+                              })
                             }
                           }}
                           disabled={!appointmentId}
@@ -317,16 +319,6 @@ const DoctorAppointments = () => {
 
         </div>
 
-        <CompleteAppointmentModal
-          key={appointmentToComplete?.id ?? appointmentToComplete?._id ?? 'closed'}
-          appointment={appointmentToComplete}
-          onClose={() => setAppointmentToComplete(null)}
-          onSubmit={completeAppointment}
-        />
-        <AppointmentDetailsModal
-          appointment={appointmentToView}
-          onClose={() => setAppointmentToView(null)}
-        />
       </div>
 
     </div>
