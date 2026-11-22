@@ -38,7 +38,7 @@ PrescriptionField.propTypes = {
 }
 
 const FormSection = ({ eyebrow, title, children }) => (
-  <section className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 sm:p-5">
+  <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
     <div className="mb-4">
       <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-blue-600">
         {eyebrow}
@@ -58,8 +58,19 @@ FormSection.propTypes = {
 const CompleteAppointmentModal = ({ appointment, onClose, onSubmit }) => {
   const [prescription, setPrescription] = useState(initialPrescription)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [patientImageFailed, setPatientImageFailed] = useState(false)
 
   if (!appointment) return null
+
+  const patient = appointment.patient || appointment.userData || {}
+  const patientName = patient.name || 'Patient'
+  const patientInitials = patientName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase()
 
   const handleChange = (event) => {
     const { name, value } = event.target
@@ -93,21 +104,21 @@ const CompleteAppointmentModal = ({ appointment, onClose, onSubmit }) => {
       >
         <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-5 sm:px-7">
           <div className="flex items-start gap-3.5">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-blue-100 bg-blue-50 text-blue-600">
               <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className="h-5 w-5">
                 <path d="M7 3.75h7l4.25 4.5v12H7a2 2 0 0 1-2-2v-12a2.5 2.5 0 0 1 2-2.5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
                 <path d="M14 4v5h4M8.5 13h7M8.5 16.5h7" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-blue-600">
-                Clinical record
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-blue-600">
+                Appointment wrap-up
               </p>
-              <h2 id="prescription-title" className="mt-1 text-xl font-bold tracking-tight text-slate-900">
-                Complete appointment
+              <h2 id="prescription-title" className="mt-1 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+                Complete visit
               </h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Add the visit details for {appointment.patient?.name || 'your patient'}.
+              <p className="mt-1 text-sm leading-5 text-slate-500">
+                Record your assessment and treatment plan.
               </p>
             </div>
           </div>
@@ -125,7 +136,43 @@ const CompleteAppointmentModal = ({ appointment, onClose, onSubmit }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="flex max-h-[calc(92vh-89px)] flex-col">
-          <div className="space-y-4 overflow-y-auto px-5 py-5 sm:px-7 sm:py-6">
+          <div className="space-y-4 overflow-y-auto bg-slate-50/70 px-5 py-5 sm:px-7 sm:py-6">
+            <section className="flex items-center gap-3 rounded-2xl border border-blue-100 bg-white p-3.5 shadow-sm sm:p-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-blue-100 text-sm font-bold text-blue-700">
+                {patient.image && !patientImageFailed ? (
+                  <img
+                    src={patient.image}
+                    alt=""
+                    className="h-full w-full object-cover"
+                    onError={() => setPatientImageFailed(true)}
+                  />
+                ) : (
+                  patientInitials
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-semibold text-slate-900">{patientName}</p>
+                <p className="mt-0.5 text-xs text-slate-500">
+                  Appointment #{appointment.id ?? appointment._id ?? '—'}
+                </p>
+                <p className="mt-1 text-xs text-slate-500 sm:hidden">
+                  {appointment.slotDate
+                    ? appointment.slotDate.replace(/_/g, '/')
+                    : 'Date unavailable'}
+                  {appointment.slotTime ? ` · ${appointment.slotTime}` : ''}
+                </p>
+              </div>
+              <div className="hidden shrink-0 text-right sm:block">
+                <p className="text-xs font-medium text-slate-500">Scheduled</p>
+                <p className="mt-0.5 text-sm font-semibold text-slate-700">
+                  {appointment.slotDate
+                    ? appointment.slotDate.replace(/_/g, '/')
+                    : 'Date unavailable'}
+                  {appointment.slotTime ? ` · ${appointment.slotTime}` : ''}
+                </p>
+              </div>
+            </section>
+
             <FormSection eyebrow="01 / Assessment" title="Visit notes">
               <div className="grid gap-4 sm:grid-cols-2">
                 <PrescriptionField
@@ -227,8 +274,15 @@ CompleteAppointmentModal.propTypes = {
     id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
     _id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
     patient: PropTypes.shape({
-      name: PropTypes.string
-    })
+      name: PropTypes.string,
+      image: PropTypes.string
+    }),
+    userData: PropTypes.shape({
+      name: PropTypes.string,
+      image: PropTypes.string
+    }),
+    slotDate: PropTypes.string,
+    slotTime: PropTypes.string
   }),
   onClose: PropTypes.func.isRequired,
   onSubmit: PropTypes.func.isRequired
